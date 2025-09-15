@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #7f8c8d;
+            --accent: #34495e;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --text: #2c3e50;
+            --background: #f5f7fa;
+            --card-bg: #ffffff;
+            --border: #bdc3c7;
+            --success: #27ae60;
+            --cancel: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--dark);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-title {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .app-subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: #ecf0f1;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: white;
+            color: var(--text);
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(127, 140, 141, 0.2);
+        }
+        
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background: var(--dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button.cancel {
+            background: var(--cancel);
+        }
+        
+        button.cancel:hover {
+            background: #c0392b;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            padding: 12px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            background: white;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover {
+            background: #f1f1f1;
+            border-color: var(--secondary);
+        }
+        
+        .calendar-day.selected {
+            background: var(--dark);
+            color: white;
+            border-color: var(--dark);
+        }
+        
+        .calendar-day.unavailable {
+            background: #f5f5f5;
+            color: #95a5a6;
+            cursor: not-allowed;
+            border: 1px dashed var(--border);
+        }
+        
+        .time-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .time-slot {
+            padding: 12px 18px;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .time-slot:hover {
+            background: #f1f1f1;
+            border-color: var(--secondary);
+        }
+        
+        .time-slot.selected {
+            background: var(--dark);
+            color: white;
+            border-color: var(--dark);
+        }
+        
+        .appointment-list {
+            list-style: none;
+        }
+        
+        .appointment-item {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+        
+        .appointment-item:hover {
+            background: #f9f9f9;
+        }
+        
+        .appointment-info {
+            flex: 1;
+        }
+        
+        .appointment-info strong {
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        .appointment-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--success);
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--cancel);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .nav-tab {
+            padding: 14px 28px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            margin-right: 6px;
+            font-weight: 600;
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+            color: var(--dark);
+        }
+        
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .appointment-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .appointment-actions {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="app-title">Sistema de Agendamento Médico</h1>
+            <p class="app-subtitle">Agende sua consulta ou exame de forma rápida e segura</p>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="agendar">Novo Agendamento</div>
+            <div class="nav-tab" data-tab="consultar">Consultar Agendamento</div>
+        </div>
+        
+        <div id="agendar" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">Selecione a especialidade e profissional</h2>
+                
+                <div class="form-group">
+                    <label for="especialidade">Especialidade:</label>
+                    <select id="especialidade">
+                        <option value="">Selecione uma especialidade</option>
+                        <option value="cardiologia">Cardiologia</option>
+                        <option value="dermatologia">Dermatologia</option>
+                        <option value="ortopedia">Ortopedia</option>
+                        <option value="pediatria">Pediatria</option>
+                        <option value="oftalmologia">Oftalmologia</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissional">Profissional:</label>
+                    <select id="profissional" disabled>
+                        <option value="">Selecione um profissional</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Selecione a data</h2>
+                <div id="calendario" class="calendar"></div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Selecione o horário</h2>
+                <div id="horarios" class="time-slots"></div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Dados pessoais</h2>
+                
+                <div class="form-group">
+                    <label for="nome">Nome completo:</label>
+                    <input type="text" id="nome" placeholder="Digite seu nome completo">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" placeholder="Digite seu CPF" maxlength="11">
+                </div>
+                
+                <button id="btnAgendar">Confirmar Agendamento</button>
+            </div>
+        </div>
+        
+        <div id="consultar" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Consultar agendamento</h2>
+                
+                <div class="form-group">
+                    <label for="cpfConsulta">Digite seu CPF:</label>
+                    <input type="text" id="cpfConsulta" placeholder="Digite seu CPF" maxlength="11">
+                </div>
+                
+                <button id="btnConsultar">Consultar</button>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Seus agendamentos</h2>
+                <ul id="listaAgendamentos" class="appointment-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados de exemplo com novos nomes de profissionais
+        const profissionais = {
+            cardiologia: [
+                { id: 1, nome: "Dr. Roberto Martins" },
+                { id: 2, nome: "Dra. Camila Silva" }
+            ],
+            dermatologia: [
+                { id: 3, nome: "Dr. André Santos" },
+                { id: 4, nome: "Dra. Patrícia Oliveira" }
+            ],
+            ortopedia: [
+                { id: 5, nome: "Dr. Marcelo Costa" },
+                { id: 6, nome: "Dra. Fernanda Rodrigues" }
+            ],
+            pediatria: [
+                { id: 7, nome: "Dr. Thiago Almeida" },
+                { id: 8, nome: "Dra. Juliana Pereira" }
+            ],
+            oftalmologia: [
+                { id: 9, nome: "Dr. Carlos Mendes" },
+                { id: 10, nome: "Dra. Ana Ferreira" }
+            ]
+        };
+
+        // Variáveis globais
+        let selectedDate = null;
+        let selectedTime = null;
+        let selectedProfessional = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            
+            // Configurar eventos
+            document.getElementById('especialidade').addEventListener('change', carregarProfissionais);
+            document.getElementById('btnAgendar').addEventListener('click', agendarConsulta);
+            document.getElementById('btnConsultar').addEventListener('click', consultarAgendamentos);
+            
+            // Inicializar calendário com o mês atual
+            inicializarCalendario();
+        });
+
+        // Carregar profissionais baseado na especialidade selecionada
+        function carregarProfissionais() {
+            const especialidade = document.getElementById('especialidade').value;
+            const selectProfissional = document.getElementById('profissional');
+            
+            selectProfissional.innerHTML = '<option value="">Selecione um profissional</option>';
+            selectProfissional.disabled = !especialidade;
+            
+            if (especialidade) {
+                profissionais[especialidade].forEach(prof => {
+                    const option = document.createElement('option');
+                    option.value = prof.id;
+                    option.textContent = prof.nome;
+                    selectProfissional.appendChild(option);
+                });
+                
+                selectProfissional.addEventListener('change', function() {
+                    selectedProfessional = this.value;
+                    inicializarCalendario();
+                });
+            }
+        }
+
+        // Inicializar calendário com datas disponíveis
+        function inicializarCalendario() {
+            const calendario = document.getElementById('calendario');
+            calendario.innerHTML = '';
+            
+            const hoje = new Date();
+            const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+            
+            // Adicionar dias do mês atual
+            for (let i = 1; i <= diasNoMes; i++) {
+                const dia = new Date(hoje.getFullYear(), hoje.getMonth(), i);
+                
+                // Pular dias passados e fins de semana
+                if (dia < new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()) || dia.getDay() === 0 || dia.getDay() === 6) {
+                    const diaElement = document.createElement('div');
+                    diaElement.className = 'calendar-day unavailable';
+                    diaElement.textContent = i;
+                    calendario.appendChild(diaElement);
+                    continue;
+                }
+                
+                const diaElement = document.createElement('div');
+                diaElement.className = 'calendar-day';
+                diaElement.textContent = i;
+                diaElement.dataset.date = dia.toISOString().split('T')[0];
+                
+                // Marcar alguns dias como indisponíveis aleatoriamente (apenas para demonstração)
+                if (Math.random() < 0.2) {
+                    diaElement.classList.add('unavailable');
+                } else {
+                    diaElement.addEventListener('click', selecionarData);
+                }
+                
+                calendario.appendChild(diaElement);
+            }
+        }
+
+        // Selecionar data
+        function selecionarData(e) {
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            e.target.classList.add('selected');
+            
+            selectedDate = e.target.dataset.date;
+            carregarHorarios();
+        }
+
+        // Carregar horários disponíveis para a data selecionada
+        function carregarHorarios() {
+            if (!selectedDate) return;
+            
+            const horariosDiv = document.getElementById('horarios');
+            horariosDiv.innerHTML = '';
+            
+            // Gerar horários das 8h às 17h
+            for (let hora = 8; hora <= 17; hora++) {
+                // Adicionar horários cheios e meia-hora
+                for (let minuto of ['00', '30']) {
+                    // Aleatoriamente marcar alguns horários como indisponíveis (apenas para demonstração)
+                    if (Math.random() < 0.3) continue;
+                    
+                    const horario = `${hora}:${minuto}`;
+                    const horarioElement = document.createElement('div');
+                    horarioElement.className = 'time-slot';
+                    horarioElement.textContent = horario;
+                    horarioElement.dataset.time = horario;
+                    
+                    horarioElement.addEventListener('click', function() {
+                        document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedTime = this.dataset.time;
+                    });
+                    
+                    horariosDiv.appendChild(horarioElement);
+                }
+            }
+        }
+
+        // Agendar consulta
+        function agendarConsulta() {
+            const nome = document.getElementById('nome').value.trim();
+            const cpf = document.getElementById('cpf').value.trim();
+            
+            if (!nome || !cpf || !selectedProfessional || !selectedDate || !selectedTime) {
+                alert('Por favor, preencha todos os campos e selecione profissional, data e horário.');
+                return;
+            }
+            
+            if (cpf.length !== 11 || isNaN(cpf)) {
+                alert('CPF deve conter exatamente 11 dígitos numéricos.');
+                return;
+            }
+            
+            // Recuperar agendamentos existentes
+            const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+            
+            // Verificar se já existe agendamento para este CPF no mesmo horário
+            const conflito = agendamentos.find(a => a.cpf === cpf && a.data === selectedDate && a.horario === selectedTime);
+            if (conflito) {
+                alert('Já existe um agendamento para este CPF no mesmo horário.');
+                return;
+            }
+            
+            // Criar novo agendamento
+            const especialidade = document.getElementById('especialidade');
+            const profissionalSelect = document.getElementById('profissional');
+            const profissionalText = profissionalSelect.options[profissionalSelect.selectedIndex].text;
+            
+            const novoAgendamento = {
+                id: Date.now(),
+                nome,
+                cpf,
+                especialidade: especialidade.value,
+                profissional: selectedProfessional,
+                profissionalNome: profissionalText,
+                data: selectedDate,
+                horario: selectedTime,
+                dataCriacao: new Date().toISOString()
+            };
+            
+            // Adicionar aos agendamentos
+            agendamentos.push(novoAgendamento);
+            localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+            
+            alert('Agendamento realizado com sucesso!');
+            
+            // Limpar formulário
+            document.getElementById('nome').value = '';
+            document.getElementById('cpf').value = '';
+            document.getElementById('especialidade').selectedIndex = 0;
+            document.getElementById('profissional').innerHTML = '<option value="">Selecione um profissional</option>';
+            document.getElementById('profissional').disabled = true;
+            document.getElementById('calendario').innerHTML = '';
+            document.getElementById('horarios').innerHTML = '';
+            
+            selectedDate = null;
+            selectedTime = null;
+            selectedProfessional = null;
+            
+            // Recarregar o calendário
+            inicializarCalendario();
+        }
+
+        // Consultar agendamentos por CPF
+        function consultarAgendamentos() {
+            const cpf = document.getElementById('cpfConsulta').value.trim();
+            
+            if (!cpf || cpf.length !== 11 || isNaN(cpf)) {
+                alert('Por favor, digite um CPF válido com 11 dígitos.');
+                return;
+            }
+            
+            const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+            const agendamentosFiltrados = agendamentos.filter(a => a.cpf === cpf);
+            
+            const lista = document.getElementById('listaAgendamentos');
+            lista.innerHTML = '';
+            
+            if (agendamentosFiltrados.length === 0) {
+                lista.innerHTML = '<li class="appointment-item">Nenhum agendamento encontrado para este CPF.</li>';
+                return;
+            }
+            
+            agendamentosFiltrados.forEach(agendamento => {
+                const li = document.createElement('li');
+                li.className = 'appointment-item';
+                
+                // Formatando a data para exibição
+                const dataObj = new Date(agendamento.data);
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                
+                li.innerHTML = `
+                    <div class="appointment-info">
+                        <strong>${agendamento.profissionalNome}</strong> - ${agendamento.especialidade}<br>
+                        ${dataFormatada} às ${agendamento.horario}
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="cancel" onclick="cancelarAgendamento(${agendamento.id})">Cancelar</button>
+                    </div>
+                `;
+                
+                lista.appendChild(li);
+            });
+        }
+
+        // Cancelar agendamento
+        function cancelarAgendamento(id) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+            
+            const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+            const novosAgendamentos = agendamentos.filter(a => a.id !== id);
+            
+            localStorage.setItem('agendamentos', JSON.stringify(novosAgendamentos));
+            
+            // Atualizar a lista
+            consultarAgendamentos();
+            alert('Agendamento cancelado com sucesso!');
+        }
+    </script>
+</body>
+</html>
